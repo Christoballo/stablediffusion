@@ -46,7 +46,7 @@ export const config: Config = {
   timezone: process.env.TIMEZONE ?? "Europe/Berlin",
   postsPerDay: num(process.env.POSTS_PER_DAY, 3),
   brand: {
-    handle: process.env.BRAND_HANDLE ?? "@wm.zone",
+    handle: process.env.BRAND_HANDLE ?? "@wm_zone_official",
     name: process.env.BRAND_NAME ?? "WM Zone",
   },
   language: (process.env.CONTENT_LANGUAGE === "en" ? "en" : "de"),

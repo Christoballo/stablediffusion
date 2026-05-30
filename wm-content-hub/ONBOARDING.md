@@ -17,7 +17,13 @@ fully configured, **hub-connected** account. It's a one-time ~15–20 minute set
 |---|---|
 | **Brand name** | **WM Zone** |
 | **Display name** | `WM Zone ⚽ WM 2026` |
-| **Handle options** (check availability, pick the first free one) | `@wm.zone` · `@wmzone.official` · `@wmzone.fussball` · `@wm.zone.2026` |
+| **Handle** | **`@wm_zone_official`** (created ✅) |
+
+> When asked "follow friends from your other accounts?" → **Skip it.** A brand
+> account keeps a low, curated following (football pages/players/news), not
+> personal contacts — it reads as professional and keeps the niche signal clean.
+> Seed real followers by sharing the account from your *personal* profile via
+> DM/story instead.
 | **Category** | Sports / Media / Digital Creator |
 | **Profile picture** | Generated for you (golden lion + ball "WM ZONE" badge) — save it from the chat widget / Higgsfield library |
 | **Contact email** | dorfladenme@gmail.com |
