@@ -151,6 +151,9 @@ src/
 test/                  unit tests
 ```
 
+**No Instagram account yet?** Follow [`ONBOARDING.md`](ONBOARDING.md) — brand
+identity, profile assets, all account settings, and the Graph API token flow.
+
 See [`STRATEGY.md`](STRATEGY.md) for the growth & monetization playbook.
 
 ## Limits & honesty
