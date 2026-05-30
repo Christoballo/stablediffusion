@@ -8,6 +8,7 @@
 
 import { config } from "../config.js";
 import { ENGAGEMENT_PROMPTS } from "../strategy/playbook.js";
+import { flagEmoji } from "../strategy/countries.js";
 import type { Caption, ContentAngle, FixtureRef } from "../types.js";
 
 export interface CaptionInput {
@@ -15,7 +16,22 @@ export interface CaptionInput {
   hookStyle: string;
   fixture?: FixtureRef;
   topic?: string;
+  /** Real player names — used editorially in copy only, never in imagery. */
+  players?: string[];
   language: "de" | "en";
+}
+
+/** Real flag emojis for a fixture, e.g. "🇲🇽 vs 🇿🇦". */
+function fixtureFlags(f?: FixtureRef): string {
+  return f ? `${flagEmoji(f.home)} vs ${flagEmoji(f.away)}` : "";
+}
+
+/** A short editorial player mention, legal because it's factual/text-only. */
+function playerLine(input: CaptionInput): string {
+  const names = input.players ?? input.fixture?.keyPlayers ?? [];
+  if (names.length === 0) return "";
+  const list = names.slice(0, 3).join(", ");
+  return input.language === "en" ? `All eyes on ${list}.` : `Alle Augen auf ${list}.`;
 }
 
 export async function generateCaption(input: CaptionInput): Promise<Caption> {
@@ -93,7 +109,10 @@ function templateCaption(input: CaptionInput): Caption {
       input.language === "en" ? `Bold call. Screenshot it.` : `Mutige Prognose. Screenshot machen.`,
   };
 
-  const body = bodies[input.angle];
+  const baseBody = bodies[input.angle];
+  const flags = fixtureFlags(input.fixture);
+  const players = playerLine(input);
+  const body = [flags && `${flags}`, baseBody, players].filter(Boolean).join("\n");
   const cta = ENGAGEMENT_PROMPTS[Math.floor(Math.random() * ENGAGEMENT_PROMPTS.length)]!;
   const full = `${hook}\n\n${body}\n\n${cta}\n\n${config.brand.handle}`;
   return { hook, body, cta, full };
@@ -107,10 +126,13 @@ async function llmCaption(input: CaptionInput): Promise<Caption> {
     `Voice: punchy, confident, fan-first, zero corporate fluff. Optimize the first line ` +
     `as a scroll-stopping hook (3-second retention is everything). Drive saves & DM shares. ` +
     `No fabricated stats. Return STRICT JSON: {"hook","body","cta"}.`;
+  const names = (input.players ?? input.fixture?.keyPlayers ?? []).slice(0, 3).join(", ");
   const user =
     `Topic: ${s}\nAngle: ${input.angle}\nHook style: ${input.hookStyle}\n` +
+    (names ? `Players to reference by name (text only, factual): ${names}\n` : "") +
     `Constraints: hook <= 90 chars; body 1-2 sentences; cta = one prompt that drives a save, ` +
-    `comment or DM share. Do not include hashtags.`;
+    `comment or DM share. You may mention real players by name editorially, but make no false ` +
+    `claims. Do not include hashtags.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -134,6 +156,8 @@ async function llmCaption(input: CaptionInput): Promise<Caption> {
     body: string;
     cta: string;
   };
-  const full = `${json.hook}\n\n${json.body}\n\n${json.cta}\n\n${config.brand.handle}`;
-  return { hook: json.hook, body: json.body, cta: json.cta, full };
+  const flags = fixtureFlags(input.fixture);
+  const body = flags ? `${flags}\n${json.body}` : json.body;
+  const full = `${json.hook}\n\n${body}\n\n${json.cta}\n\n${config.brand.handle}`;
+  return { hook: json.hook, body, cta: json.cta, full };
 }

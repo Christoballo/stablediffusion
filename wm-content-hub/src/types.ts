@@ -43,6 +43,8 @@ export interface FixtureRef {
   stage: string; // "group", "r32", "r16", "qf", "sf", "final"
   kickoffUtc: string;
   venue?: string;
+  /** Real player names referenced editorially in captions/stats (NOT imagery). */
+  keyPlayers?: string[];
 }
 
 export interface GeneratedAsset {

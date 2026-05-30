@@ -23,6 +23,7 @@ const SAMPLE_FIXTURES = [
     stage: "group",
     kickoffUtc: "2026-06-11T19:00:00Z",
     venue: "Estadio Azteca, Mexico City",
+    keyPlayers: ["Santiago Giménez", "Hirving Lozano", "Lyle Foster"],
   },
   {
     matchId: "wc2026-m2",
@@ -31,6 +32,7 @@ const SAMPLE_FIXTURES = [
     stage: "group",
     kickoffUtc: "2026-06-12T23:00:00Z",
     venue: "SoFi Stadium, Los Angeles",
+    keyPlayers: ["Christian Pulisic", "Brenden Aaronson"],
   },
   {
     matchId: "wc2026-final",

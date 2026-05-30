@@ -110,6 +110,7 @@ export async function runDay(date = today()): Promise<Post[]> {
       angle: item.angle,
       hookStyle: item.arms.hookStyle,
       fixture: item.context,
+      players: item.context?.keyPlayers,
       language: config.language,
     });
     const fullCaption = `${caption.full}\n\n${hashtags.join(" ")}`;
