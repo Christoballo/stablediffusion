@@ -32,8 +32,19 @@ export interface ContentPlanItem {
     hookStyle: string;
     hashtagSet: string;
   };
+  /** The recurring series this episode belongs to ("build a show, not a feed"). */
+  franchise?: FranchiseRef;
   /** The fixture/news that motivated this item, if any. */
   context?: FixtureRef;
+}
+
+/** A lightweight reference to a content franchise carried on plans/posts. */
+export interface FranchiseRef {
+  id: string;
+  name: string;
+  label: string; // recognizable caption header, e.g. "📊 STAT BOMB"
+  cue: string; // recurring visual cue for brand recognition
+  engagement: string; // the interactive CTA that drives saves/sends/comments
 }
 
 export interface FixtureRef {
@@ -77,6 +88,7 @@ export interface Post {
   hashtags: string[];
   scheduledAt: string;
   arms: ContentPlanItem["arms"];
+  franchise?: FranchiseRef;
   status: "draft" | "queued" | "published" | "failed" | "dry_run";
   publishedAt?: string;
   igMediaId?: string;

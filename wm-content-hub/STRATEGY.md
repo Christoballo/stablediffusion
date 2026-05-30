@@ -28,6 +28,33 @@ Likes are near-worthless for reach. The reward function weights them at 8%.
 - **Stories** — daily polls/countdowns for the existing audience + sticker
   interactions (not counted in the feed mix).
 
+### Build a show, not a feed (modeled on the biggest accounts)
+The largest football accounts (433 — 77M followers, ~5B impressions/month — and
+B/R Football) don't post random clips; they run **recurring named series** with a
+fixed visual cue and a predictable cadence, so the audience is trained to expect
+the next episode. That repetition is what compounds saves, returns and DM shares.
+
+The hub codifies this in [`franchises.ts`](src/strategy/franchises.ts). Every
+slot is an *episode* of a franchise, not a one-off:
+
+| Franchise | When | Format | Drives |
+|---|---|---|---|
+| 📋 **Predicted XI** | pre-match | carousel | saves (reference) + comments |
+| 🎙️ **Matchday Verdict** | post-match (fast, like 433) | reel | reach + comments |
+| 📊 **Stat Bomb** | daily | carousel | saves + DM sends |
+| 🧪 **Tactics Lab** | rest days | carousel | saves (authority) |
+| 📅 **On This Day** | throwback days | reel | nostalgia + tags |
+| ❓ **Trivia Kickoff** | weekly | static | comments |
+| 🔥 **Power Ranking** | weekly | carousel | debate/comments + saves |
+| 😂 **Meme Time** | Fridays | static (mascot) | shares |
+| ⏳ **The Countdown** | build-up | reel | anticipation |
+
+Selection is match-day-aware (react fast: Predicted XI → Verdict → Stat Bomb)
+and otherwise follows a weekly rhythm so non-match days still feel like
+appointment viewing. Each franchise carries its own signature interactive CTA
+(the save/send/comment mechanic) and a recurring on-image cue for instant
+recognition. Run `wm-hub shows` to see the full lineup.
+
 ### The match-day story arc
 The calendar sequences a day so the account *owns the conversation* around each
 fixture:

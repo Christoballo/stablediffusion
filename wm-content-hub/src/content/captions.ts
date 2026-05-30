@@ -9,7 +9,7 @@
 import { config } from "../config.js";
 import { ENGAGEMENT_PROMPTS } from "../strategy/playbook.js";
 import { flagEmoji } from "../strategy/countries.js";
-import type { Caption, ContentAngle, FixtureRef } from "../types.js";
+import type { Caption, ContentAngle, FixtureRef, FranchiseRef } from "../types.js";
 
 export interface CaptionInput {
   angle: ContentAngle;
@@ -18,6 +18,8 @@ export interface CaptionInput {
   topic?: string;
   /** Real player names — used editorially in copy only, never in imagery. */
   players?: string[];
+  /** The recurring series this episode belongs to. */
+  franchise?: FranchiseRef;
   language: "de" | "en";
 }
 
@@ -72,7 +74,9 @@ const HOOKS_EN: Record<string, (s: string) => string> = {
 function templateCaption(input: CaptionInput): Caption {
   const s = subject(input);
   const hooks = input.language === "en" ? HOOKS_EN : HOOKS_DE;
-  const hook = (hooks[input.hookStyle] ?? hooks.bold_claim!)(s);
+  const rawHook = (hooks[input.hookStyle] ?? hooks.bold_claim!)(s);
+  // Lead with the recognizable series header — trains the audience on the show.
+  const hook = input.franchise ? `${input.franchise.label}\n${rawHook}` : rawHook;
 
   const bodies: Record<ContentAngle, string> = {
     match_preview:
@@ -113,7 +117,8 @@ function templateCaption(input: CaptionInput): Caption {
   const flags = fixtureFlags(input.fixture);
   const players = playerLine(input);
   const body = [flags && `${flags}`, baseBody, players].filter(Boolean).join("\n");
-  const cta = ENGAGEMENT_PROMPTS[Math.floor(Math.random() * ENGAGEMENT_PROMPTS.length)]!;
+  // Franchise CTA is the series' signature interactive mechanic (save/send/comment).
+  const cta = input.franchise?.engagement ?? ENGAGEMENT_PROMPTS[Math.floor(Math.random() * ENGAGEMENT_PROMPTS.length)]!;
   const full = `${hook}\n\n${body}\n\n${cta}\n\n${config.brand.handle}`;
   return { hook, body, cta, full };
 }
@@ -123,12 +128,18 @@ async function llmCaption(input: CaptionInput): Promise<Caption> {
   const sys =
     `You are the head social copywriter for ${config.brand.name}, a World Cup 2026 ` +
     `football brand on Instagram. Write in ${input.language === "en" ? "English" : "German"}. ` +
-    `Voice: punchy, confident, fan-first, zero corporate fluff. Optimize the first line ` +
+    `Voice: punchy, confident, fan-first "locker-room" energy like the biggest football ` +
+    `pages (433, B/R Football) — real talk, zero corporate fluff. Optimize the first line ` +
     `as a scroll-stopping hook (3-second retention is everything). Drive saves & DM shares. ` +
     `No fabricated stats. Return STRICT JSON: {"hook","body","cta"}.`;
+  const seriesNote = input.franchise
+    ? `This is an episode of the recurring series "${input.franchise.name}" — keep its ` +
+      `signature tone and make the interactive CTA "${input.franchise.engagement}".\n`
+    : "";
   const names = (input.players ?? input.fixture?.keyPlayers ?? []).slice(0, 3).join(", ");
   const user =
     `Topic: ${s}\nAngle: ${input.angle}\nHook style: ${input.hookStyle}\n` +
+    seriesNote +
     (names ? `Players to reference by name (text only, factual): ${names}\n` : "") +
     `Constraints: hook <= 90 chars; body 1-2 sentences; cta = one prompt that drives a save, ` +
     `comment or DM share. You may mention real players by name editorially, but make no false ` +
@@ -158,6 +169,8 @@ async function llmCaption(input: CaptionInput): Promise<Caption> {
   };
   const flags = fixtureFlags(input.fixture);
   const body = flags ? `${flags}\n${json.body}` : json.body;
-  const full = `${json.hook}\n\n${body}\n\n${json.cta}\n\n${config.brand.handle}`;
-  return { hook: json.hook, body, cta: json.cta, full };
+  const hook = input.franchise ? `${input.franchise.label}\n${json.hook}` : json.hook;
+  const cta = json.cta || input.franchise?.engagement || "";
+  const full = `${hook}\n\n${body}\n\n${cta}\n\n${config.brand.handle}`;
+  return { hook, body, cta, full };
 }

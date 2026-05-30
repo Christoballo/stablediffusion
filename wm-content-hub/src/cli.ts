@@ -14,6 +14,7 @@ import { join, resolve } from "node:path";
 import { config } from "./config.js";
 import { log } from "./logger.js";
 import { buildReport, planDay, runDay, syncDay, today } from "./pipeline.js";
+import { allFranchises } from "./strategy/franchises.js";
 
 const SAMPLE_FIXTURES = [
   {
@@ -78,6 +79,14 @@ async function main(): Promise<void> {
     case "report":
       console.log(await buildReport());
       break;
+    case "shows":
+      console.log("=== Content franchises (the recurring shows) ===");
+      for (const f of allFranchises()) {
+        console.log(`\n${f.label}  (${f.name})`);
+        console.log(`  cue: ${f.cue}`);
+        console.log(`  cta: ${f.engagement}`);
+      }
+      break;
     case "daily":
       await syncDay().catch((e) => log.warn(`sync skipped: ${e}`));
       await runDay(today());
@@ -93,6 +102,7 @@ async function main(): Promise<void> {
           "  run  [date]    generate + caption + publish/dry-run",
           "  sync           pull insights + reward the optimizer",
           "  report         status + learned optimum",
+          "  shows          list the recurring content franchises",
           "  daily          sync -> run (the autonomous cron loop)",
         ].join("\n"),
       );

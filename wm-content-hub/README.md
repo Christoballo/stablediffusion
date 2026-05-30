@@ -75,6 +75,7 @@ publish endpoint, printing the captions/hashtags it would ship. Flip
 | `wm-hub run [date]` | Generate + caption + publish (or dry-run) |
 | `wm-hub sync` | Pull insights for matured posts, reward the optimizer |
 | `wm-hub report` | Status + the learned optimum (leaderboard) |
+| `wm-hub shows` | List the recurring content franchises (the "shows") |
 | `wm-hub daily` | `sync → run` — the autonomous loop the cron calls |
 
 ---
@@ -123,7 +124,9 @@ src/
   cli.ts               command-line entry
   strategy/
     playbook.ts        2026 algorithm constants + reward weights
-    calendar.ts        WM 2026 fixtures + phase/angle sequencing
+    franchises.ts      recurring named series ("build a show, not a feed")
+    countries.ts       real public-domain flags + national color palettes
+    calendar.ts        WM 2026 fixtures + phase sequencing
     hashtags.ts        tiered hashtag engine + reach attribution
     trends.ts          trend ingestion with time-decay
   content/

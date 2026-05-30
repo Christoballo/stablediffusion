@@ -16,13 +16,10 @@ import { getProvider } from "./content/generator.js";
 import { InstagramGraphClient } from "./instagram/graph.js";
 import { InsightsClient } from "./instagram/insights.js";
 import { creditPost, optimizerReport, recommendArms } from "./optimize/optimizer.js";
-import { anglesForDay, fixturesOn, tournamentPhase } from "./strategy/calendar.js";
+import { fixturesOn, tournamentPhase } from "./strategy/calendar.js";
+import { selectFranchises } from "./strategy/franchises.js";
 import { buildHashtagSets, recordHashtagReach, selectHashtagSet } from "./strategy/hashtags.js";
-import {
-  HOOK_STYLE_ARMS,
-  POSTING_HOUR_ARMS,
-  ANGLE_DEFAULT_FORMAT,
-} from "./strategy/playbook.js";
+import { HOOK_STYLE_ARMS, POSTING_HOUR_ARMS } from "./strategy/playbook.js";
 import { fetchLiveTrends, ingestTrends, scheduleTrends } from "./strategy/trends.js";
 import type { ContentPlanItem, HubStore, Post } from "./types.js";
 
@@ -48,12 +45,11 @@ export async function planDay(date = today()): Promise<ContentPlanItem[]> {
   }
 
   const slots = Math.max(1, config.postsPerDay);
-  const angles = await anglesForDay(date, slots);
   const fixtures = await fixturesOn(date);
+  const episodes = selectFranchises(date, slots, tournamentPhase(date), fixtures);
 
-  const items: ContentPlanItem[] = angles.map((angle, slot) => {
-    const format = ANGLE_DEFAULT_FORMAT[angle];
-    const hashtagSets = buildHashtagSets(angle, fixtures.flatMap((f) => [f.home, f.away]), store).map(
+  const items: ContentPlanItem[] = episodes.map((ep, slot) => {
+    const hashtagSets = buildHashtagSets(ep.angle, fixtures.flatMap((f) => [f.home, f.away]), store).map(
       (s) => s.setId,
     );
     const arms = recommendArms(store.bandit, {
@@ -66,11 +62,12 @@ export async function planDay(date = today()): Promise<ContentPlanItem[]> {
     return {
       id: randomUUID(),
       date,
-      format,
-      angle,
+      format: ep.format,
+      angle: ep.angle,
       slot,
       scheduledAt: scheduledAt(date, hour),
       arms: { ...arms, postingHour: hour },
+      franchise: ep.franchise,
       context: fixtures[slot % Math.max(1, fixtures.length)],
     };
   });
@@ -111,6 +108,7 @@ export async function runDay(date = today()): Promise<Post[]> {
       hookStyle: item.arms.hookStyle,
       fixture: item.context,
       players: item.context?.keyPlayers,
+      franchise: item.franchise,
       language: config.language,
     });
     const fullCaption = `${caption.full}\n\n${hashtags.join(" ")}`;
@@ -126,6 +124,7 @@ export async function runDay(date = today()): Promise<Post[]> {
       hashtags,
       scheduledAt: item.scheduledAt,
       arms: item.arms,
+      franchise: item.franchise,
       status: "draft",
     };
 
@@ -216,7 +215,7 @@ export async function buildReport(store?: HubStore): Promise<string> {
     ...(top.length
       ? top.map(
           (p, i) =>
-            `  ${i + 1}. [${p.format}/${p.angle}] reach=${p.metrics?.reach} reward=${(
+            `  ${i + 1}. ${p.franchise?.name ?? p.angle} [${p.format}] reach=${p.metrics?.reach} reward=${(
               (p.metrics?.reward ?? 0) * 100
             ).toFixed(0)}%  ${p.igPermalink ?? ""}`,
         )

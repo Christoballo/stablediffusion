@@ -68,7 +68,11 @@ const ANGLE_VISUAL: Record<ContentAngle, (f?: FixtureRef) => string> = {
 export function buildGenSpec(item: ContentPlanItem): GenSpec {
   const aspect = FORMAT_ASPECT[item.format];
   const base = ANGLE_VISUAL[item.angle](item.context);
-  const visual = `${base}, ${BRAND_LOOK}, ${config.brand.name} branding lower-third`;
+  // The franchise cue is the recurring visual signature that makes the series
+  // instantly recognizable in the feed ("build a show, not a feed").
+  const cue = item.franchise ? `, recurring series look: ${item.franchise.cue}` : "";
+  const label = item.franchise ? `, on-image series badge reading "${item.franchise.name}"` : "";
+  const visual = `${base}${cue}, ${BRAND_LOOK}, ${config.brand.name} branding lower-third${label}`;
 
   if (item.format === "reel" || item.format === "story") {
     return { kind: "video", prompts: [videoPrompt(item.angle, base)], aspectRatio: aspect, durationSec: 8 };
