@@ -75,7 +75,7 @@ export function buildGenSpec(item: ContentPlanItem): GenSpec {
   const visual = `${base}${cue}, ${BRAND_LOOK}, ${config.brand.name} branding lower-third${label}`;
 
   if (item.format === "reel" || item.format === "story") {
-    return { kind: "video", prompts: [videoPrompt(item.angle, base)], aspectRatio: aspect, durationSec: 8 };
+    return { kind: "video", prompts: [videoPrompt(item)], aspectRatio: aspect, durationSec: 8 };
   }
   if (item.format === "carousel") {
     // 5-slide carousel: cover + 3 content slides + CTA slide.
@@ -94,11 +94,27 @@ export function buildGenSpec(item: ContentPlanItem): GenSpec {
   return { kind: "image", prompts: [visual], aspectRatio: aspect };
 }
 
-function videoPrompt(angle: ContentAngle, base: string): string {
+// Production-hardened video prompt. Lesson from live generation: animating
+// human silhouettes via image-to-video reliably trips content-moderation
+// false-positives (the classifier misreads moving body forms). For reels we
+// therefore go PURE MOTION GRAPHICS — no people/figures/silhouettes — which is
+// both filter-safe and a cleaner broadcast look. Flags + franchise cue + brand
+// typography carry the identity.
+function videoPrompt(item: ContentPlanItem): string {
+  const f = item.context;
+  const flagClause = f
+    ? `national-flag color motifs of ${f.home} and ${f.away}, `
+    : "World Cup 2026 color motifs, ";
+  const cue = item.franchise ? `recurring series look: ${item.franchise.cue}, ` : "";
+  const badge = item.franchise ? `kinetic typography animating the words "${item.franchise.name}", ` : "";
   return (
-    `8-second vertical hype reel: ${base}. Fast cuts, kinetic typography animating in, ` +
-    `light flares, crowd roar energy, strong first-frame hook, ${BRAND_LOOK}. ` +
-    `First 1s must be visually arresting to win the 3-second retention threshold.`
+    `8-second vertical sports-broadcast motion-graphics intro. Absolutely NO people, ` +
+    `no human figures, no silhouettes — animated graphic design elements only. ` +
+    `${flagClause}${cue}bold geometric shapes, sweeping light streaks, soft floodlight ` +
+    `glows, ${badge}clean glowing "${config.brand.name}" lower-third banner, subtle ` +
+    `animated scoreboard grid. Polished ESPN-style broadcast title sequence, high ` +
+    `contrast, premium, professional and family-friendly. The first second must be ` +
+    `visually arresting to win the 3-second retention threshold.`
   );
 }
 
