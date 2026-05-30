@@ -89,6 +89,8 @@ export interface Post {
   scheduledAt: string;
   arms: ContentPlanItem["arms"];
   franchise?: FranchiseRef;
+  /** Revenue placement attached to this post, if any. */
+  monetization?: MonetizationAttachment;
   status: "draft" | "queued" | "published" | "failed" | "dry_run";
   publishedAt?: string;
   igMediaId?: string;
@@ -110,6 +112,50 @@ export interface PostMetrics {
   avgWatchTimeMs?: number;
   /** Normalised 0..1 reward used to update the bandit. */
   reward: number;
+}
+
+/** Revenue model for a monetization offer. */
+export type PayoutModel = "cpa" | "cpc" | "cpm" | "flat" | "revshare";
+
+/** Something the account can earn money from, attached to posts. */
+export interface Offer {
+  id: string;
+  type: "affiliate" | "merch" | "sponsor" | "own_product" | "lead_magnet";
+  name: string;
+  url: string;
+  ctaDe: string;
+  ctaEn: string;
+  payoutModel: PayoutModel;
+  /** € amount (cpa/cpc/cpm/flat) or fraction 0..1 (revshare). */
+  payoutValue: number;
+  currency: string;
+  /** Content angles this offer fits (empty = any). */
+  angles?: ContentAngle[];
+  /** Franchise ids this offer fits (empty = any). */
+  franchises?: string[];
+  /** Higher = preferred when several fit. */
+  weight?: number;
+  active: boolean;
+  startDate?: string;
+  endDate?: string;
+  /** Assumed click->conversion rate (0..1) for revenue estimation. */
+  assumedCvr?: number;
+}
+
+/** A monetization placement recorded on a post. */
+export interface MonetizationAttachment {
+  offerId: string;
+  offerName: string;
+  type: Offer["type"];
+  cta: string;
+  trackedUrl: string;
+  placedAt: string;
+  /** Real numbers, filled by `revenue record`. */
+  clicks?: number;
+  conversions?: number;
+  revenue?: number;
+  /** Model-based projection from reach (set at sync time). */
+  estimatedRevenue?: number;
 }
 
 /** Persisted bandit state: Beta(alpha, beta) per arm, per dimension. */

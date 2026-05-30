@@ -74,8 +74,11 @@ publish endpoint, printing the captions/hashtags it would ship. Flip
 | `wm-hub plan [date]` | Build the editorial plan for a date |
 | `wm-hub run [date]` | Generate + caption + publish (or dry-run) |
 | `wm-hub sync` | Pull insights for matured posts, reward the optimizer |
-| `wm-hub report` | Status + the learned optimum (leaderboard) |
+| `wm-hub report` | Status + the learned optimum (leaderboard) + revenue |
 | `wm-hub shows` | List the recurring content franchises (the "shows") |
+| `wm-hub offers` | List revenue offers (affiliate/merch/sponsor/lead magnet) |
+| `wm-hub revenue` | Revenue report · `revenue record <postId> <clicks> [conv]` |
+| `wm-hub mediakit` | Generate the brand-deal media kit + rate card |
 | `wm-hub daily` | `sync → run` — the autonomous loop the cron calls |
 
 ---
@@ -139,6 +142,12 @@ src/
   optimize/
     bandit.ts          Thompson sampling over Beta arms
     optimizer.ts       reward computation + arm crediting
+  monetize/
+    offers.ts          revenue offer catalogue (affiliate/merch/sponsor/...)
+    engine.ts          per-post offer selection (trust-protected)
+    links.ts           UTM-tracked link builder (revenue attribution)
+    revenue.ts         revenue estimation + recording + report
+    mediakit.ts        brand-deal media kit + rate card generator
 test/                  unit tests
 ```
 

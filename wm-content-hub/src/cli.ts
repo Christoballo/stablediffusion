@@ -15,6 +15,10 @@ import { config } from "./config.js";
 import { log } from "./logger.js";
 import { buildReport, planDay, runDay, syncDay, today } from "./pipeline.js";
 import { allFranchises } from "./strategy/franchises.js";
+import { loadStore, saveStore } from "./store.js";
+import { DEFAULT_OFFERS, loadOffers, offersPath } from "./monetize/offers.js";
+import { recordedRevenue, revenueReport } from "./monetize/revenue.js";
+import { generateMediaKit } from "./monetize/mediakit.js";
 
 const SAMPLE_FIXTURES = [
   {
@@ -55,11 +59,18 @@ async function cmdInit(): Promise<void> {
   } else {
     log.info(`Fixtures already present at ${fixturesPath}.`);
   }
+  if (!existsSync(offersPath())) {
+    await writeFile(offersPath(), JSON.stringify(DEFAULT_OFFERS, null, 2), "utf8");
+    log.info(`Wrote starter revenue offers -> ${offersPath()} (replace URLs with your real links).`);
+  } else {
+    log.info(`Offers already present at ${offersPath()}.`);
+  }
   log.info(`Data dir ready at ${dir}. Mode: ${config.dryRun ? "DRY_RUN" : "LIVE"}.`);
 }
 
 async function main(): Promise<void> {
-  const [cmd, arg] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const [cmd, arg] = args;
   switch (cmd) {
     case "init":
       await cmdInit();
@@ -87,6 +98,53 @@ async function main(): Promise<void> {
         console.log(`  cta: ${f.engagement}`);
       }
       break;
+    case "offers": {
+      const offers = await loadOffers();
+      console.log("=== Revenue offers ===");
+      for (const o of offers) {
+        const flag = o.active ? "✅" : "⏸️ ";
+        console.log(
+          `${flag} [${o.type}] ${o.name} — ${o.payoutModel} ${o.payoutValue}${o.payoutModel === "revshare" ? "" : " " + o.currency} (w=${o.weight ?? 1})`,
+        );
+      }
+      break;
+    }
+    case "mediakit": {
+      const { summary } = await generateMediaKit(await loadStore());
+      console.log(summary);
+      break;
+    }
+    case "revenue": {
+      if (arg === "record") {
+        const [, , postId, clicksStr, convStr] = args;
+        if (!postId || !clicksStr) {
+          log.error("Usage: wm-hub revenue record <postId> <clicks> [conversions]");
+          break;
+        }
+        const store = await loadStore();
+        const offers = await loadOffers();
+        const post = store.posts.find((p) => p.id === postId || p.id.startsWith(postId));
+        if (!post || !post.monetization) {
+          log.error(`No monetized post found for id ${postId}.`);
+          break;
+        }
+        const offer = offers.find((o) => o.id === post.monetization!.offerId);
+        if (!offer) {
+          log.error(`Offer ${post.monetization.offerId} not found.`);
+          break;
+        }
+        const clicks = Number(clicksStr);
+        const conversions = convStr ? Number(convStr) : undefined;
+        post.monetization.clicks = clicks;
+        post.monetization.conversions = conversions;
+        post.monetization.revenue = recordedRevenue(offer, clicks, conversions);
+        await saveStore(store);
+        log.info(`Recorded ${post.monetization.revenue.toFixed(2)} EUR on post ${post.id.slice(0, 8)}.`);
+      } else {
+        console.log(revenueReport(await loadStore()));
+      }
+      break;
+    }
     case "daily":
       await syncDay().catch((e) => log.warn(`sync skipped: ${e}`));
       await runDay(today());
@@ -103,6 +161,9 @@ async function main(): Promise<void> {
           "  sync           pull insights + reward the optimizer",
           "  report         status + learned optimum",
           "  shows          list the recurring content franchises",
+          "  offers         list revenue offers (affiliate/merch/sponsor/...)",
+          "  revenue        revenue report  ·  revenue record <postId> <clicks> [conv]",
+          "  mediakit       generate the brand-deal media kit + rate card",
           "  daily          sync -> run (the autonomous cron loop)",
         ].join("\n"),
       );

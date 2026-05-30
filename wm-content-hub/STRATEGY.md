@@ -84,6 +84,12 @@ Run `wm-hub report` to see the live leaderboard.
 
 ## Part 2 — Monetization (turning reach into revenue)
 
+> **Now built into the hub.** The `monetize/` modules attach a trackable offer
+> to most posts (trust-protected: sponsors capped at 1-in-5, ~25% stay organic),
+> project € from reach at sync time, record real click/conversion revenue
+> (`wm-hub revenue record`), and auto-generate a media kit + rate card
+> (`wm-hub mediakit`). Edit `data/offers.json` to plug in your real links.
+
 Reach is the asset; here's how it's liquidated. Roughly in order of how fast
 they pay and how much audience they need:
 

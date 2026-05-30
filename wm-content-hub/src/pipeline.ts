@@ -16,6 +16,9 @@ import { getProvider } from "./content/generator.js";
 import { InstagramGraphClient } from "./instagram/graph.js";
 import { InsightsClient } from "./instagram/insights.js";
 import { creditPost, optimizerReport, recommendArms } from "./optimize/optimizer.js";
+import { loadOffers } from "./monetize/offers.js";
+import { attachMonetization } from "./monetize/engine.js";
+import { projectPostRevenue, summarizeRevenue } from "./monetize/revenue.js";
 import { fixturesOn, tournamentPhase } from "./strategy/calendar.js";
 import { selectFranchises } from "./strategy/franchises.js";
 import { buildHashtagSets, recordHashtagReach, selectHashtagSet } from "./strategy/hashtags.js";
@@ -89,6 +92,7 @@ export async function runDay(date = today()): Promise<Post[]> {
   const plan = await planDay(date);
   const store = await loadStore();
   const provider = getProvider();
+  const offers = await loadOffers();
   const live = !config.dryRun;
   if (live) assertPublishable();
 
@@ -111,7 +115,6 @@ export async function runDay(date = today()): Promise<Post[]> {
       franchise: item.franchise,
       language: config.language,
     });
-    const fullCaption = `${caption.full}\n\n${hashtags.join(" ")}`;
 
     const post: Post = {
       id: randomUUID(),
@@ -127,6 +130,11 @@ export async function runDay(date = today()): Promise<Post[]> {
       franchise: item.franchise,
       status: "draft",
     };
+
+    // Decide & attach a revenue placement (trust-protected; may stay organic).
+    post.monetization = attachMonetization(post, store.posts, offers, date);
+    const monetLine = post.monetization ? `\n\n${post.monetization.cta}` : "";
+    const fullCaption = `${caption.full}${monetLine}\n\n${hashtags.join(" ")}`;
 
     try {
       post.assets = await provider.generate(spec);
@@ -166,6 +174,7 @@ export async function syncDay(minAgeHours = 20): Promise<number> {
   }
   assertPublishable();
   const insights = new InsightsClient();
+  const offers = await loadOffers();
   const cutoff = Date.now() - minAgeHours * 3_600_000;
   let updated = 0;
 
@@ -178,6 +187,7 @@ export async function syncDay(minAgeHours = 20): Promise<number> {
       post.metrics = await insights.fetchMetrics(post.igMediaId, post.format);
       creditPost(store.bandit, post);
       recordHashtagReach(store, post.hashtags, post.metrics.reach);
+      projectPostRevenue(post, offers);
       updated++;
       log.info(
         `Synced ${post.igMediaId}: reach=${post.metrics.reach} reward=${post.metrics.reward.toFixed(3)}`,
@@ -205,11 +215,15 @@ export async function buildReport(store?: HubStore): Promise<string> {
     .sort((a, b) => (b.metrics?.reach ?? 0) - (a.metrics?.reach ?? 0))
     .slice(0, 3);
 
+  const rev = summarizeRevenue(s);
+  const monetized = s.posts.filter((p) => p.monetization).length;
+
   const lines = [
     `=== ${config.brand.name} — WM Content Hub report ===`,
     `Mode: ${config.dryRun ? "DRY_RUN" : "LIVE"} | Language: ${config.language}`,
     `Plans: ${s.plans.length} | Posts: ${s.posts.length} (published ${published.length}, scored ${scored.length})`,
     `Total tracked reach: ${totalReach.toLocaleString()} | Avg reward: ${(avgReward * 100).toFixed(1)}%`,
+    `Revenue: ${rev.recordedTotal.toFixed(2)} EUR recorded / ${rev.estimatedTotal.toFixed(2)} EUR projected | monetized posts: ${monetized}/${s.posts.length}`,
     "",
     "Top posts by reach:",
     ...(top.length
