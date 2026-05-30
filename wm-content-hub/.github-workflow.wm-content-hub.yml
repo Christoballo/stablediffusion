@@ -1,0 +1,63 @@
+# Autonomous daily run for the WM Content Hub.
+#
+# DEPLOY: move this file to `.github/workflows/wm-content-hub.yml` at the repo
+# root (it lives here as a sample so it doesn't auto-run before you've added
+# secrets). Then add these repository secrets:
+#   IG_USER_ID, IG_ACCESS_TOKEN, HIGGSFIELD_API_KEY, ANTHROPIC_API_KEY (optional)
+# Set DRY_RUN to "false" in the env block below to go live.
+#
+# The job runs every day, learns from yesterday's insights, then plans and
+# ships today's content. State (the bandit + post history) is persisted across
+# runs via actions/cache so the optimizer keeps learning.
+
+name: WM Content Hub — Daily
+
+on:
+  schedule:
+    # 06:00 UTC daily. The hub itself decides the optimal posting hour per item.
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: wm-content-hub
+  cancel-in-progress: false
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wm-content-hub
+    env:
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      HIGGSFIELD_API_KEY: ${{ secrets.HIGGSFIELD_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GRAPH_API_VERSION: v21.0
+      DRY_RUN: "true" # <-- set to "false" to publish for real
+      CONTENT_LANGUAGE: de
+      POSTS_PER_DAY: "3"
+      DATA_DIR: ./data
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Restore hub state
+        uses: actions/cache@v4
+        with:
+          path: wm-content-hub/data
+          key: wm-hub-state-${{ github.run_id }}
+          restore-keys: |
+            wm-hub-state-
+
+      - name: Install
+        run: npm ci || npm install
+
+      - name: Init (ensure data dir + fixtures)
+        run: npm run init
+
+      - name: Daily autonomous run
+        run: npx tsx src/cli.ts daily

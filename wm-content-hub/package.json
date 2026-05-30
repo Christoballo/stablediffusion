@@ -1,0 +1,31 @@
+{
+  "name": "wm-content-hub",
+  "version": "1.0.0",
+  "description": "Autonomous content hub for a FIFA World Cup 2026 brand influencer on Instagram. Plans, generates (Higgsfield), publishes (Instagram Graph API) and self-optimizes via a reward-driven bandit.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "wm-hub": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "init": "tsx src/cli.ts init",
+    "plan": "tsx src/cli.ts plan",
+    "run": "tsx src/cli.ts run",
+    "sync": "tsx src/cli.ts sync",
+    "report": "tsx src/cli.ts report",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test --import tsx ./test/*.test.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}
