@@ -15,8 +15,8 @@ Generated 2026-05-30 · 12 days to kickoff · all assets are original & rights-s
 ## 📌 POST 1 — Launch + Countdown  (PIN THIS)
 **Format:** Single image (4:5) · **Best time:** 18:00–20:00 · **Then: pin to profile**
 
-**Asset:** `bf5d0c7b` — "NOCH 12 TAGE" countdown hero
-https://d8j0ntlcm91z4.cloudfront.net/user_2zGOfy7KhvgRzJS8HpM93QG3oPK/hf_20260530_210416_bf5d0c7b-0665-4477-8a50-87b93a959aa9.png
+**Asset:** `e721aa29` — "NOCH 12 TAGE" countdown hero (rights-safe: own lion badge, no FIFA emblem)
+https://d8j0ntlcm91z4.cloudfront.net/user_2zGOfy7KhvgRzJS8HpM93QG3oPK/hf_20260531_065935_e721aa29-bce4-4954-80fd-ba4a8413b307.png
 
 **Caption:**
 ```
@@ -39,8 +39,8 @@ Folgen = nichts verpassen. Der Wahnsinn beginnt.
 ## 🔥 POST 2 — Power Ranking: Top 5 Titelfavoriten
 **Format:** Carousel cover (4:5) · **Best time:** next day, 20:00–21:00
 
-**Asset (cover):** `ac106bf3` — "TOP 5 TITELFAVORITEN"
-https://d8j0ntlcm91z4.cloudfront.net/user_2zGOfy7KhvgRzJS8HpM93QG3oPK/hf_20260530_210419_ac106bf3-d9c4-41c1-b825-706f5ab4e9bc.png
+**Asset (cover):** `71a93aae` — "TOP 5 TITELFAVORITEN" (rights-safe: original star trophy, no FIFA mark)
+https://d8j0ntlcm91z4.cloudfront.net/user_2zGOfy7KhvgRzJS8HpM93QG3oPK/hf_20260531_065939_71a93aae-e1dd-4c2f-a077-60c8872dd631.png
 
 > Tip: add 5 follow-up slides (one per favorite, e.g. 🇦🇷 🇫🇷 🇧🇷 🇪🇸 🇩🇪) with one
 > stat each. The hub generates these as a full carousel once live.
