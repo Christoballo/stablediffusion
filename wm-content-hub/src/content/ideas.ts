@@ -18,7 +18,10 @@ const BRAND_LOOK =
   "bold modern sports-broadcast graphic style, dramatic stadium lighting, deep " +
   "saturated team-color palette, kinetic typography space, premium ESPN/Sky-Sports " +
   "broadcast aesthetic, high contrast, cinematic, no real player faces, generic " +
-  "athletic silhouettes, no team crests or federation logos, World Cup 2026 energy";
+  "athletic silhouettes, no team crests or federation logos, World Cup 2026 energy. " +
+  "STRICTLY NO FIFA logo or wordmark, no official World Cup emblem or tournament " +
+  "logo, no official tournament mascot, no replica of the real FIFA World Cup " +
+  "trophy, no year emblem — original generic graphics only";
 
 // Original, owned brand mascot — NOT a FIFA mascot. Override via BRAND_MASCOT env.
 const BRAND_MASCOT =
